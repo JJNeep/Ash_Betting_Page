@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Play-money sportsbook. Nothing here is real.">
+<title>Magpiebet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap">
+</head>
+<body>
+<style>
+/* Layout: fixed chrome top and bottom, dense market column, betslip docked right on desktop
+   and as a bottom sheet on phones. Single dark world on purpose — bookies don't do light mode. */
+:root{
+  color-scheme: dark;
+  --ink:#0b0d10;
+  --panel:#13171c;
+  --panel-2:#181d23;
+  --raise:#1e242c;
+  --line:#242c35;
+  --line-2:#2f3945;
+  --fg:#eef1f5;
+  --muted:#8a95a3;
+  --muted-2:#5f6b78;
+  --accent:#ffc400;
+  --accent-ink:#141005;
+  --up:#25c26e;
+  --down:#ff5257;
+  --live:#ff3b30;
+  --font-display:"Saira Condensed","Arial Narrow",Impact,sans-serif;
+  --font-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --font-num:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:3px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink);
+  color:var(--fg);
+  font-family:var(--font-body);
+  font-size:14px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:64px;
+}
+button,input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- top chrome ---------- */
+.topbar{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:40;
+  background:var(--ink);
+  border-bottom:1px solid var(--line);
+}
+.topbar-in{
+  max-width:1180px;margin:0 auto;
+  padding:10px 16px;
+  display:flex;align-items:center;gap:14px;
+}
+.wordmark{
+  display:flex;align-items:baseline;gap:6px;
+  font-family:var(--font-display);
+  font-weight:700;font-size:21px;letter-spacing:.02em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.wordmark .dot{
+  width:9px;height:9px;background:var(--accent);
+  border-radius:50%;align-self:center;
+  box-shadow:0 0 0 3px rgba(255,196,0,.16);
+}
+.wordmark .au{
+  font-family:var(--font-body);
+  font-size:9px;font-weight:700;letter-spacing:.14em;
+  color:var(--accent);
+  border:1px solid rgba(255,196,0,.45);
+  padding:1px 4px;border-radius:2px;
+  position:relative;top:-2px;
+}
+.wordmark .owner{
+  font-family:var(--font-body);
+  font-size:11px;font-weight:600;color:var(--muted);
+  letter-spacing:.01em;text-transform:none;
+  padding-left:9px;margin-left:2px;
+  border-left:1px solid var(--line-2);
+  position:relative;top:-1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw;
+}
+@media (max-width:440px){
+  .wordmark .au{display:none}
+  .wordmark{font-size:19px}
+}
+.topbar-spacer{flex:1}
+.acct{
+  display:flex;align-items:center;gap:10px;
+}
+.balance{
+  text-align:right;line-height:1.1;
+}
+.balance .lbl{
+  display:block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+}
+.balance .amt{
+  font-family:var(--font-num);font-weight:700;font-size:15px;
+  font-variant-numeric:tabular-nums;
+}
+.btn{
+  border:1px solid var(--line-2);background:var(--raise);
+  border-radius:var(--r);padding:7px 12px;
+  font-size:12px;font-weight:600;letter-spacing:.02em;
+  cursor:pointer;white-space:nowrap;
+  transition:background .12s,border-color .12s;
+}
+.btn:hover{background:#252c35;border-color:#3a4552}
+.btn-accent{
+  background:var(--accent);border-color:var(--accent);color:var(--accent-ink);
+  font-weight:700;text-transform:uppercase;font-size:11.5px;letter-spacing:.06em;
+}
+.btn-accent:hover{background:#ffd43d;border-color:#ffd43d}
+.btn-ghost{background:transparent;border-color:var(--line-2);color:var(--muted)}
+.btn-ghost:hover{color:var(--fg);background:var(--raise)}
+
+/* nav rail */
+.railwrap{background:var(--panel);border-bottom:1px solid var(--line)}
+.rail{
+  max-width:1180px;margin:0 auto;padding:0 16px;
+  display:flex;gap:22px;overflow-x:auto;scrollbar-width:none;
+}
+.rail::-webkit-scrollbar{display:none}
+.rail a{
+  padding:10px 0;white-space:nowrap;
+  font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);border-bottom:2px solid transparent;
+  cursor:pointer;
+}
+.rail a:hover{color:var(--fg)}
+.rail a.on{color:var(--fg);border-bottom-color:var(--accent)}
+
+/* ticker */
+.tickerbar{
+  background:#0e1216;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:0;overflow:hidden;
+}
+.tickerlbl{
+  flex:none;display:flex;align-items:center;gap:6px;
+  padding:6px 12px;background:var(--panel-2);
+  border-right:1px solid var(--line);
+  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);
+}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--live);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.tickertrack{
+  flex:1;min-width:0;overflow:hidden;white-space:nowrap;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 92%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 24px,#000 92%,transparent);
+}
+.tickertrack span{
+  display:inline-block;padding:6px 26px 6px 0;
+  font-size:11.5px;color:var(--muted);
+  animation:slide 46s linear infinite;
+}
+.tickertrack b{color:var(--fg);font-weight:600}
+.tickertrack i{color:var(--accent);font-style:normal;font-family:var(--font-num);font-weight:500}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ---------- page shell ---------- */
+.shell{
+  max-width:1180px;margin:0 auto;
+  padding:16px 16px 40px;
+  display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:18px;align-items:start;
+}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+}
+
+/* event header */
+.evthead{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:14px;
+}
+.crumb{
+  font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+  display:flex;flex-wrap:wrap;align-items:center;gap:7px;
+}
+.crumb .sep{color:var(--line-2)}
+.evttitle{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(25px,5vw,36px);line-height:1.04;
+  margin:7px 0 0;text-wrap:balance;text-transform:uppercase;letter-spacing:.01em;
+}
+.evtmeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.tag{
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 7px;border-radius:2px;border:1px solid var(--line-2);color:var(--muted);
+}
+.tag.live{border-color:rgba(255,59,48,.5);color:#ff7a75;display:flex;align-items:center;gap:5px}
+.tag.boost{border-color:rgba(255,196,0,.5);color:var(--accent)}
+.tag.pending{border-color:rgba(255,196,0,.3);color:var(--accent)}
+.pendbar{
+  display:flex;align-items:center;gap:9px;
+  margin-top:12px;padding:9px 12px;
+  background:rgba(255,59,48,.07);
+  border:1px solid rgba(255,59,48,.28);border-radius:var(--r);
+  font-size:12.5px;color:#d7dee6;
+}
+
+/* market block */
+.mkt{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;overflow:hidden;
+}
+.mkt-h{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:var(--panel-2);
+  border-bottom:1px solid var(--line);
+}
+.mkt-h h3{
+  margin:0;font-family:var(--font-display);font-weight:700;
+  font-size:16px;letter-spacing:.02em;text-transform:uppercase;
+  min-width:0;
+}
+.mkt-h .count{
+  margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  white-space:nowrap;
+}
+.outs{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+  gap:1px;background:var(--line);
+}
+.out{
+  background:var(--panel);border:0;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 13px;text-align:left;cursor:pointer;min-width:0;
+  transition:background .1s;
+}
+.out:hover{background:var(--raise)}
+.out.sel{background:rgba(255,196,0,.13);box-shadow:inset 0 0 0 1px var(--accent)}
+.out .nm{font-size:13px;font-weight:500;min-width:0;overflow-wrap:anywhere}
+.out .od{
+  font-family:var(--font-num);font-weight:700;font-size:14.5px;
+  font-variant-numeric:tabular-nums;color:var(--accent);
+  display:flex;align-items:center;gap:5px;flex:none;
+}
+.out.sel .od{color:var(--fg)}
+.arrow{font-size:9px;line-height:1}
+.arrow.up{color:var(--up)}
+.arrow.down{color:var(--down)}
+
+/* lobby cards */
+.sect-h{
+  display:flex;align-items:baseline;gap:10px;margin:22px 0 10px;
+}
+.sect-h h2{
+  margin:0;font-family:var(--font-display);font-weight:700;font-size:19px;
+  text-transform:uppercase;letter-spacing:.03em;
+}
+.sect-h .more{font-size:11px;color:var(--muted);margin-left:auto;cursor:pointer}
+.sect-h .more:hover{color:var(--accent)}
+.feat{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;
+}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:9px;
+  transition:border-color .12s,background .12s;
+}
+.card:hover{border-color:var(--line-2);background:var(--panel-2)}
+.card .k{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent)}
+.card h4{
+  margin:0;font-family:var(--font-display);font-weight:700;font-size:19px;
+  text-transform:uppercase;line-height:1.1;letter-spacing:.01em;
+}
+.card p{margin:0;font-size:12.5px;color:var(--muted)}
+.card .go{
+  margin-top:3px;font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--accent);
+}
+.dead{opacity:.5;cursor:not-allowed}
+.dead:hover{border-color:var(--line);background:var(--panel)}
+
+/* ---------- betslip ---------- */
+.slip{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  position:sticky;top:calc(env(safe-area-inset-top,0px) + 64px);
+  overflow:hidden;
+}
+.slip-h{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 13px;background:var(--panel-2);border-bottom:1px solid var(--line);
+}
+.slip-h h3{
+  margin:0;font-family:var(--font-display);font-weight:700;font-size:15px;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.badge{
+  background:var(--accent);color:var(--accent-ink);
+  font-family:var(--font-num);font-weight:700;font-size:11px;
+  min-width:19px;height:19px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;padding:0 5px;
+}
+.slip-h .clr{margin-left:auto;font-size:11px;color:var(--muted);cursor:pointer}
+.slip-h .clr:hover{color:var(--down)}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{
+  flex:1;background:transparent;border:0;border-bottom:2px solid transparent;
+  padding:9px 4px;cursor:pointer;
+  font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--accent)}
+.slip-body{max-height:min(46vh,420px);overflow-y:auto}
+.leg{padding:11px 13px;border-bottom:1px solid var(--line)}
+.leg-top{display:flex;gap:8px;align-items:flex-start}
+.leg-top .info{flex:1;min-width:0}
+.leg .pick{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.leg .mkt-nm{font-size:11px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+.leg .od{
+  font-family:var(--font-num);font-weight:700;color:var(--accent);
+  font-size:13.5px;font-variant-numeric:tabular-nums;flex:none;
+}
+.leg .x{
+  background:transparent;border:0;color:var(--muted);cursor:pointer;
+  font-size:15px;line-height:1;padding:0 0 0 4px;flex:none;
+}
+.leg .x:hover{color:var(--down)}
+.stakerow{display:flex;align-items:center;gap:8px;margin-top:9px}
+.stakerow label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.money{
+  flex:1;display:flex;align-items:center;gap:5px;
+  background:var(--ink);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:6px 9px;
+}
+.money span{color:var(--muted);font-family:var(--font-num);font-size:13px}
+.money input{
+  width:100%;background:transparent;border:0;outline:none;
+  font-family:var(--font-num);font-weight:700;font-size:13.5px;
+  font-variant-numeric:tabular-nums;
+}
+.money input::-webkit-outer-spin-button,.money input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.money input[type=number]{-moz-appearance:textfield}
+.ret{
+  font-family:var(--font-num);font-size:11.5px;color:var(--muted);
+  margin-top:6px;font-variant-numeric:tabular-nums;
+}
+.ret b{color:var(--up);font-weight:700}
+.chips{display:flex;gap:6px;padding:10px 13px 0}
+.chips button{
+  flex:1;background:var(--raise);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:6px 0;font-family:var(--font-num);font-size:12px;font-weight:500;cursor:pointer;
+}
+.chips button:hover{border-color:var(--accent);color:var(--accent)}
+.slip-foot{padding:12px 13px;border-top:1px solid var(--line);background:var(--panel-2)}
+.sumline{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:11.5px;color:var(--muted);margin-bottom:5px;
+}
+.sumline .v{font-family:var(--font-num);font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.sumline.big{font-size:12.5px;margin-bottom:11px}
+.sumline.big .v{font-size:17px;color:var(--accent)}
+.place{
+  width:100%;background:var(--accent);color:var(--accent-ink);
+  border:0;border-radius:var(--r);padding:12px;cursor:pointer;
+  font-family:var(--font-display);font-weight:700;font-size:16px;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.place:hover{background:#ffd43d}
+.place:disabled{background:var(--raise);color:var(--muted);cursor:not-allowed}
+.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:12.5px}
+.empty .big{
+  display:block;font-family:var(--font-display);font-size:15px;
+  text-transform:uppercase;color:var(--line-2);margin-bottom:5px;letter-spacing:.05em;
+}
+
+/* mobile slip = bottom sheet */
+.sheetbar{
+  display:none;
+  position:fixed;left:0;right:0;bottom:0;z-index:45;
+  background:var(--accent);color:var(--accent-ink);
+  border:0;width:100%;cursor:pointer;
+  padding:13px 16px calc(13px + env(safe-area-inset-bottom,0px));
+  font-family:var(--font-display);font-weight:700;font-size:15px;
+  text-transform:uppercase;letter-spacing:.05em;
+  align-items:center;justify-content:center;gap:9px;
+}
+@media (max-width:900px){
+  .slip{
+    position:fixed;left:0;right:0;bottom:0;z-index:50;
+    border-radius:var(--r) var(--r) 0 0;border-bottom:0;
+    max-height:86vh;display:flex;flex-direction:column;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    box-shadow:0 -18px 40px rgba(0,0,0,.6);
+  }
+  .slip[hidden]{display:none}
+  .slip-body{max-height:none;flex:1}
+  .sheetbar{display:flex}
+  body{padding-bottom:0}
+}
+
+/* ---------- the punchline ---------- */
+.veil{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(4,5,7,.93);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;overflow:hidden;
+}
+.veil[hidden]{display:none}
+.hawall{
+  position:absolute;inset:0;overflow:hidden;
+  opacity:.16;pointer-events:none;
+  display:flex;flex-direction:column;justify-content:center;gap:2px;
+}
+.harow{
+  white-space:nowrap;font-family:var(--font-display);font-weight:700;
+  font-size:clamp(30px,7vw,64px);letter-spacing:.04em;color:var(--accent);
+  animation:ha 15s linear infinite;
+}
+.harow:nth-child(even){animation-duration:19s;animation-direction:reverse;color:var(--fg)}
+@keyframes ha{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.receipt{
+  position:relative;z-index:1;width:100%;max-width:400px;
+  background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:22px;text-align:center;
+}
+.stamp{
+  display:inline-block;transform:rotate(-7deg);
+  border:3px solid var(--down);color:var(--down);border-radius:4px;
+  padding:5px 13px;font-family:var(--font-display);font-weight:700;
+  font-size:21px;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.receipt h2{
+  margin:0 0 9px;font-family:var(--font-display);font-weight:700;
+  font-size:clamp(27px,7vw,38px);line-height:1;text-transform:uppercase;
+  text-wrap:balance;
+}
+.receipt p{margin:0 0 14px;font-size:14px;color:var(--muted);text-wrap:balance}
+.receipt .detail{
+  border-top:1px dashed var(--line-2);border-bottom:1px dashed var(--line-2);
+  padding:11px 0;margin-bottom:16px;text-align:left;
+}
+.drow{
+  display:flex;justify-content:space-between;gap:12px;
+  font-family:var(--font-num);font-size:11.5px;color:var(--muted);
+  padding:2px 0;
+}
+.drow b{color:var(--fg);font-weight:500;text-align:right;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:reduce){
+  .harow,.tickertrack span,.pulse{animation:none}
+}
+
+/* ---------- setup page ---------- */
+.doc{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px;margin-bottom:12px;
+}
+.doc h2{
+  margin:0 0 4px;font-family:var(--font-display);font-weight:700;
+  font-size:22px;text-transform:uppercase;letter-spacing:.02em;
+}
+.doc h3{
+  margin:20px 0 7px;font-family:var(--font-display);font-weight:700;
+  font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);
+}
+.doc p,.doc li{font-size:13.5px;color:#c3ccd6;max-width:64ch}
+.doc ol,.doc ul{padding-left:19px;margin:7px 0}
+.doc li{margin-bottom:5px}
+.doc code{
+  font-family:var(--font-num);font-size:12.5px;
+  background:var(--ink);border:1px solid var(--line);border-radius:2px;
+  padding:1px 5px;color:var(--accent);overflow-wrap:anywhere;
+}
+.doc pre{
+  background:var(--ink);border:1px solid var(--line);border-left:2px solid var(--accent);
+  border-radius:var(--r);padding:13px;overflow-x:auto;margin:9px 0;
+}
+.doc pre code{background:none;border:0;padding:0;color:#d7dee6;font-size:12.5px;line-height:1.6}
+.doc pre code .c{color:#6d7a88}
+.doc pre code .s{color:var(--up)}
+.note{
+  border-left:2px solid var(--accent);background:rgba(255,196,0,.06);
+  padding:10px 13px;margin:12px 0;font-size:13px;color:#d7dee6;
+}
+
+/* ---------- footer ---------- */
+.foot{
+  border-top:1px solid var(--line);margin-top:26px;
+  background:#090b0e;
+}
+.foot-in{
+  max-width:1180px;margin:0 auto;padding:18px 16px 26px;
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+  font-size:11px;color:var(--muted-2,#5f6b78);
+}
+.foot-in .disc{
+  border:1px solid var(--line);border-radius:var(--r);
+  padding:7px 11px;color:var(--muted);
+  font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:10px;
+}
+.foot-in a{cursor:pointer;color:var(--muted)}
+.foot-in a:hover{color:var(--accent)}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:120;
+  background:var(--raise);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:10px 15px;font-size:12.5px;box-shadow:0 8px 26px rgba(0,0,0,.5);
+  max-width:calc(100% - 32px);
+}
+.toast[hidden]{display:none}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="wordmark"><span class="dot"></span><span id="brandName">MAGPIEBET</span><span class="au">AU</span><span class="owner" id="ownerTag"></span></div>
+    <div class="topbar-spacer"></div>
+    <div class="acct">
+      <div class="balance"><span class="lbl">Balance</span><span class="amt" id="balAmt">$500.00</span></div>
+      <button class="btn btn-accent" id="depositBtn">Deposit</button>
+    </div>
+  </div>
+</header>
+
+<div class="railwrap">
+  <nav class="rail" id="rail"></nav>
+</div>
+
+<div class="tickerbar">
+  <div class="tickerlbl"><span class="pulse"></span>In play</div>
+  <div class="tickertrack"><span id="tickerText"></span></div>
+</div>
+
+<main class="shell">
+  <div id="main"></div>
+  <aside>
+    <section class="slip" id="slip" aria-label="Bet slip">
+      <div class="slip-h">
+        <h3>Bet slip</h3>
+        <span class="badge" id="slipCount">0</span>
+        <span class="clr" id="clearSlip">Clear</span>
+      </div>
+      <div class="tabs" id="slipTabs">
+        <button data-mode="singles" class="on">Singles</button>
+        <button data-mode="multi">Multi</button>
+      </div>
+      <div class="slip-body" id="slipBody"></div>
+      <div class="slip-foot" id="slipFoot"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <span class="disc">Play money · Nothing here is real</span>
+    <span>No accounts, no deposits, no winnings. The odds were invented by a bloke with a keyboard.</span>
+    <span style="flex:1"></span>
+    <a id="setupLink">Setup</a>
+  </div>
+</footer>
+
+<button class="sheetbar" id="sheetBar" hidden></button>
+<div class="toast" id="toast" hidden></div>
+
+<div class="veil" id="veil" hidden>
+  <div class="hawall" id="haWall" aria-hidden="true"></div>
+  <div class="receipt" role="alertdialog" aria-labelledby="veilTitle">
+    <div class="stamp">Void</div>
+    <h2 id="veilTitle">It's fake, bro</h2>
+    <p id="veilSub">There's no money. There's no bet. There's no bookie. Just me, laughing at you.</p>
+    <div class="detail" id="veilDetail"></div>
+    <button class="btn btn-accent" id="veilClose" style="width:100%;padding:11px">Let me pretend again</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   EDIT THIS BIT — everything you need to change is in this one block.
+   Nothing below it needs touching.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const CFG = {
+
+  // ══ 1. THE NAMES GO HERE ══════════════════════════════════════
+  //    PERSON_A is who the ?page=45sec link is about.
+  //    PERSON_B is who the ?page=44sec link is about.
+  //    Just swap the words inside the quotes. Keep the quotes.
+  PERSON_A: "Jasper",
+  PERSON_B: "Saffron",
+
+  // 2. Where each of them is now, and what they're chasing,
+  //    in SECONDS. 1:11 = 71. 53 seconds = 53.
+  BEST_A: 53,      // Runner A's current best
+  TARGET_A: 45,    // Runner A is chasing this
+
+  BEST_B: 71,      // Runner B's current best (1:11.00)
+  TARGET_B: 44,    // Runner B is chasing this
+
+  // 3. The brand across the top, and whose page it is.
+  //    OWNER_LABEL sits next to the logo — put your own name in it.
+  BRAND: "MAGPIEBET",
+  OWNER_LABEL: "Ash's page",
+
+  // 4. Fake starting balance. Means nothing, it's a prop.
+  BALANCE: 500,
+
+  // 5. What they're doing. Shows in the breadcrumb.
+  DISCIPLINE: "Training",
+
+  // 6. Cut-off date used by the "best time by..." market.
+  DEADLINE: "31 December"
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   END OF THE BIT YOU EDIT
+   ═══════════════════════════════════════════════════════════════════ */
+
+const $ = (s, r) => (r || document).querySelector(s);
+const money = n => "$" + n.toFixed(2);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- routing: ?page=45sec on a real host, #45sec as a fallback ---------- */
+function readRoute() {
+  let p = "";
+  try { p = new URLSearchParams(location.search).get("page") || ""; } catch (e) { }
+  if (!p) p = (location.hash || "").replace(/^#/, "").replace(/^page=/, "");
+  p = p.toLowerCase().trim();
+  if (p === "45sec" || p === "45") return "45sec";
+  if (p === "44sec" || p === "44") return "44sec";
+  if (p === "setup") return "setup";
+  return "lobby";
+}
+
+function go(route) {
+  const url = route === "lobby" ? "?" : "?page=" + route;
+  try { history.pushState({ route }, "", url); } catch (e) { location.hash = route; }
+  state.route = route;
+  state.slip = [];
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ---------- pricing ---------- */
+/* Everything is priced off the gap between current best and target.
+   Runner A finding 8 seconds and Runner B finding 27 are very
+   different propositions, and the board should say so. */
+
+function fmtT(s) {
+  if (s < 60) return s.toFixed(2);
+  const m = Math.floor(s / 60), r = s - m * 60;
+  return m + ":" + (r < 10 ? "0" : "") + r.toFixed(2);
+}
+const r1 = n => (Math.round(n * 10) / 10).toFixed(1);
+
+/* decimal odds from a probability, with a bookie's margin baked in */
+function price(p) {
+  let v = (1 / Math.max(p, 0.004)) * 0.93;
+  v = v > 20 ? Math.round(v) : Math.round(v * 100) / 100;
+  return Math.min(101, Math.max(1.04, v));
+}
+function spread(total, weights) {
+  const s = weights.reduce((a, b) => a + b, 0);
+  return weights.map(w => total * w / s);
+}
+/* skew a set of weights toward the later (slower / longer) options
+   as the task gets harder */
+function skew(weights, rel, force) {
+  return weights.map((w, i) => w * Math.pow(1 + rel * force, i / 2));
+}
+
+function buildEvent(who, best, target) {
+  const gap = best - target;
+  const rel = gap / best;                       // how much they have to shave off
+  const pEver = Math.min(0.88, Math.max(0.06, 0.92 - rel * 2.0));
+  const pNever = 1 - pEver;
+
+  /* market 2 — how long */
+  const timeLabels = ["Inside 2 weeks", "2 weeks – 1 month", "1 – 2 months",
+    "2 – 4 months", "4 – 6 months", "Over 6 months"];
+  const timeP = spread(pEver, skew([1.0, 1.8, 2.4, 2.2, 1.4, 0.9], rel, 3));
+
+  /* market 3 — sessions */
+  const sessLabels = ["Under 5 more", "5 – 9", "10 – 19", "20 – 49", "50 or more"];
+  const sessP = spread(pEver, skew([0.8, 1.6, 2.2, 2.0, 1.2], rel, 4));
+
+  /* market 4 — best time by the deadline */
+  const cut = i => target + gap * i / 4;
+  const bandLabels = [
+    "Under " + fmtT(target) + " — done it",
+    fmtT(target) + " – " + fmtT(cut(1)),
+    fmtT(cut(1)) + " – " + fmtT(cut(2)),
+    fmtT(cut(2)) + " – " + fmtT(cut(3)),
+    fmtT(cut(3)) + " – " + fmtT(best),
+    fmtT(best) + " or slower — no improvement"
+  ];
+  const bandP = spread(1, skew([pEver * 2.2, 1.6, 2.0, 1.9, 1.4, 1.0], rel, 2.5));
+
+  /* market 7 — total improvement */
+  const big = gap * 0.6, mid = gap * 0.3, small = gap * 0.1;
+  const impLabels = [
+    "Over " + r1(big) + " seconds",
+    r1(mid) + " – " + r1(big) + " seconds",
+    r1(small) + " – " + r1(mid) + " seconds",
+    "Under " + r1(small) + " seconds",
+    "Goes backwards"
+  ];
+  const impP = spread(1, skew([0.9, 1.6, 2.0, 1.6, 0.7], rel, 2));
+
+  const mk = (labels, probs) => labels.map((n, i) => ({ name: n, odds: price(probs[i]) }));
+
+  return {
+    who: who,
+    best: best,
+    target: target,
+    gap: gap,
+    title: "Can " + who + " get from " + fmtT(best) + " to " + fmtT(target) + "?",
+    markets: [
+      {
+        name: "Does " + who + " ever reach " + fmtT(target) + "?",
+        note: "Match result",
+        outs: [
+          { name: "Yes, eventually", odds: price(pEver) },
+          { name: "No, never happens", odds: price(pNever) }
+        ]
+      },
+      {
+        name: "How long until they get there?",
+        note: "7 selections",
+        outs: mk(timeLabels, timeP).concat({ name: "Never gets there", odds: price(pNever) })
+      },
+      {
+        name: "Sessions needed to get there",
+        note: "Over / under",
+        outs: mk(sessLabels, sessP).concat({ name: "They don't get there", odds: price(pNever) })
+      },
+      {
+        name: "Best time by " + CFG.DEADLINE,
+        note: "6 selections",
+        outs: mk(bandLabels, bandP)
+      },
+      {
+        name: "Next session",
+        note: "Short term",
+        outs: [
+          { name: "New personal best", odds: price(0.38) },
+          { name: "Exactly matches their PB", odds: price(0.03) },
+          { name: "Slower than their PB", odds: price(0.51) },
+          { name: "Doesn't turn up", odds: price(0.08) }
+        ]
+      },
+      {
+        name: "How they take it",
+        note: "Specials",
+        outs: [
+          { name: "Blames the watch", odds: 2.80 },
+          { name: "Claims the timing was wrong", odds: 3.10 },
+          { name: "In the group chat inside 5 minutes", odds: 1.85 },
+          { name: "Buys new gear before improving", odds: 3.60 },
+          { name: "Changes nothing, improves anyway", odds: 6.00 },
+          { name: '"I\'m taking a rest week"', odds: 4.00 }
+        ]
+      },
+      {
+        name: "Total improvement from here",
+        note: "Handicap",
+        outs: mk(impLabels, impP)
+      }
+    ]
+  };
+}
+
+/* ---------- state ---------- */
+const state = {
+  route: readRoute(),
+  mode: "singles",
+  slip: [],
+  multiStake: 25,
+  sheetOpen: false,
+  balance: CFG.BALANCE
+};
+
+const EVENTS = {
+  "45sec": buildEvent(CFG.PERSON_A, CFG.BEST_A, CFG.TARGET_A),
+  "44sec": buildEvent(CFG.PERSON_B, CFG.BEST_B, CFG.TARGET_B)
+};
+
+/* stable key per outcome so drift + selection survive re-renders */
+Object.keys(EVENTS).forEach(k => {
+  EVENTS[k].markets.forEach((m, mi) => {
+    m.key = k + ":" + mi;
+    m.outs.forEach((o, oi) => { o.key = k + ":" + mi + ":" + oi; o.drift = 0; });
+  });
+});
+
+/* ---------- rendering ---------- */
+function renderRail() {
+  const items = [
+    { id: "lobby", label: "Home" },
+    { id: "45sec", label: "Sub-" + CFG.TARGET_A + " watch" },
+    { id: "44sec", label: "Sub-" + CFG.TARGET_B + " watch" },
+    { id: "x-racing", label: "Racing" },
+    { id: "x-sports", label: "Sports" },
+    { id: "x-promos", label: "Promos" }
+  ];
+  $("#rail").innerHTML = items.map(i =>
+    '<a data-go="' + i.id + '" class="' + (i.id === state.route ? "on" : "") + '">' + esc(i.label) + "</a>"
+  ).join("");
+}
+
+function renderTicker() {
+  const a = CFG.PERSON_A, b = CFG.PERSON_B;
+  const lines = [
+    '<b>southside_kev</b> took <i>$250</i> on ' + esc(a) + " to blame the watch",
+    "<b>margin_caller</b> · <i>$40</i> multi · four legs · still alive",
+    "<b>oi_oi_oi</b> backed <b>" + esc(b) + "</b> to find " + EVENTS["44sec"].gap.toFixed(0) + " seconds. Brave.",
+    "Market suspended · <b>Greyhounds R4</b> · resettling",
+    "<b>dazza_1987</b> cashed out for <i>$6.20</i> and immediately regretted it",
+    "<b>not_a_bot</b> took <i>$1,000</i> on " + esc(a) + " never getting there at all",
+    "Steamer · <b>" + esc(b) + "</b> new personal best next session · <i>2.60</i> into <i>2.25</i>"
+  ];
+  const html = lines.join(" &nbsp;·&nbsp; ") + " &nbsp;·&nbsp; ";
+  $("#tickerText").innerHTML = html + html;
+}
+
+function marketHTML(m) {
+  return '<section class="mkt">' +
+    '<div class="mkt-h"><h3>' + esc(m.name) + "</h3>" +
+    '<span class="count">' + esc(m.note) + "</span></div>" +
+    '<div class="outs">' + m.outs.map(o => {
+      const on = state.slip.some(s => s.key === o.key);
+      const ar = o.drift > 0 ? '<span class="arrow up">▲</span>'
+        : o.drift < 0 ? '<span class="arrow down">▼</span>' : "";
+      return '<button class="out' + (on ? " sel" : "") + '" data-pick="' + o.key + '">' +
+        '<span class="nm">' + esc(o.name) + "</span>" +
+        '<span class="od">' + ar + o.odds.toFixed(2) + "</span></button>";
+    }).join("") + "</div></section>";
+}
+
+function renderEventPage(key) {
+  const ev = EVENTS[key];
+  const other = key === "45sec" ? "44sec" : "45sec";
+  const otherEv = EVENTS[other];
+  return '<div class="evthead">' +
+    '<div class="crumb"><span>' + esc(CFG.DISCIPLINE) + '</span><span class="sep">/</span>' +
+    '<span>Sub-' + ev.target + ' watch</span><span class="sep">/</span><span>' + esc(ev.who) + "</span></div>" +
+    '<h1 class="evttitle">' + esc(ev.title) + "</h1>" +
+    '<div class="evtmeta">' +
+    '<span class="tag live"><span class="pulse"></span>In play</span>' +
+    '<span class="tag pending">Ongoing</span>' +
+    '<span class="tag">' + ev.markets.length + " markets open</span>" +
+    '<span class="tag boost">Odds boosted</span>' +
+    '<span class="tag">Cash out available</span></div>' +
+    '<div class="pendbar"><span class="pulse"></span>' +
+    "Current best " + fmtT(ev.best) + ". Target " + fmtT(ev.target) + ". That is " +
+    ev.gap.toFixed(2) + " seconds to find. Nothing settles until " + esc(ev.who) +
+    " either gets there or gives up, so every market stays open.</div></div>" +
+    ev.markets.map(marketHTML).join("") +
+    '<div class="sect-h"><h2>Other events</h2></div>' +
+    '<div class="feat"><div class="card" data-go="' + other + '">' +
+    '<span class="k">' + esc(CFG.DISCIPLINE) + "</span>" +
+    "<h4>" + esc(otherEv.title) + "</h4>" +
+    "<p>" + fmtT(otherEv.best) + " chasing " + fmtT(otherEv.target) + ". " +
+    otherEv.markets.length + " markets open.</p>" +
+    '<span class="go">View markets →</span></div></div>';
+}
+
+function renderLobby() {
+  const a = EVENTS["45sec"], b = EVENTS["44sec"];
+  const card = (route, ev) =>
+    '<div class="card" data-go="' + route + '"><span class="k">' + esc(CFG.DISCIPLINE) + " · Featured</span>" +
+    "<h4>" + esc(ev.title) + "</h4>" +
+    "<p>Sitting on " + fmtT(ev.best) + ", chasing " + fmtT(ev.target) + " — " +
+    ev.gap.toFixed(2) + " seconds off the pace. " + ev.markets.length + " markets open.</p>" +
+    '<span class="go">View markets →</span></div>';
+  const dud = (k, t, p) =>
+    '<div class="card dead"><span class="k">' + k + "</span><h4>" + t + "</h4><p>" + p + "</p>" +
+    '<span class="go" style="color:var(--muted)">Suspended</span></div>';
+  return '<div class="evthead">' +
+    '<div class="crumb"><span>Home</span><span class="sep">/</span><span>Today</span></div>' +
+    '<h1 class="evttitle">Today\'s markets</h1>' +
+    '<div class="evtmeta"><span class="tag live"><span class="pulse"></span>2 events in play</span>' +
+    '<span class="tag boost">Boosted odds</span></div></div>' +
+    '<div class="sect-h"><h2>Featured</h2><span class="more" data-go="setup">How this works</span></div>' +
+    '<div class="feat">' + card("45sec", a) + card("44sec", b) + "</div>" +
+    '<div class="sect-h"><h2>Racing</h2></div>' +
+    '<div class="feat">' +
+    dud("Greyhounds · R4", "Cannington", "Late scratchings. Market resettling.") +
+    dud("Harness · R7", "Gloucester Park", "No prices available.") +
+    dud("Sports · Darts", "Friday night 501", "Opens when someone finds the board.") +
+    "</div>";
+}
+
+function renderSetup() {
+  const pre = (lines) => '<pre><code>' + lines + "</code></pre>";
+  return '<div class="doc">' +
+    "<h2>Setup guide</h2>" +
+    "<p>This page isn't linked from anywhere your mates will look. Everything you need to change lives " +
+    "in one block at the top of the script, marked <code>EDIT THIS BIT</code>.</p>" +
+
+    "<h3>1. Put your names in</h3>" +
+    "<p>Open <code>index.html</code>, scroll to the big <code>EDIT THIS BIT</code> banner (it's right at the " +
+    "top of the <code>&lt;script&gt;</code>), and change these two lines:</p>" +
+    pre('<span class="c">// \u2550\u2550 1. THE NAMES GO HERE \u2550\u2550</span>\n' +
+      'PERSON_A: <span class="s">"Runner A"</span>,\n' +
+      'PERSON_B: <span class="s">"Runner B"</span>,') +
+    "<p>Keep the quotes and the comma. Both names then flow through every market, " +
+    "the ticker and the page titles automatically. Fastest way to find the spot: " +
+    "<code>Ctrl+F</code> for <code>Runner A</code>.</p>" +
+
+    "<h3>2. Their times</h3>" +
+    "<p>Right underneath, in seconds. A minute and eleven is <code>71</code>:</p>" +
+    pre('BEST_A: <span class="s">53</span>,   <span class="c">// current best</span>\n' +
+      'TARGET_A: <span class="s">45</span>, <span class="c">// what they\'re chasing</span>\n\n' +
+      'BEST_B: <span class="s">71</span>,\n' +
+      'TARGET_B: <span class="s">44</span>,') +
+    "<p>Every price on the board is worked out from the gap between those two numbers, " +
+    "so changing them re-prices all seven markets. No quotes on these — they're numbers.</p>" +
+
+    "<h3>3. Name the place</h3>" +
+    "<p>Same block, a few lines down. <code>BRAND</code> is the logo, " +
+    "<code>OWNER_LABEL</code> is the bit next to it:</p>" +
+    pre('BRAND: <span class="s">"MAGPIEBET"</span>,\n' +
+      'OWNER_LABEL: <span class="s">"Ash\'s page"</span>,') +
+    "<p>Keep the brand short so it survives a phone screen; the owner label can be longer.</p>" +
+
+    "<h3>4. The seven markets</h3>" +
+    "<p>Each page runs the same board against that person's target time:</p>" +
+    "<ul>" +
+    "<li><b>Does it ever happen</b> — straight yes/no on ever hitting the number</li>" +
+    "<li><b>How long until they get there</b> — two weeks through to never</li>" +
+    "<li><b>Sessions needed</b> — under 5 up to 50 or more</li>" +
+    "<li><b>Best time by " + esc(CFG.DEADLINE) + "</b> — six bands around the target</li>" +
+    "<li><b>Next session</b> — new PB, matches it, slower, or no-show</li>" +
+    "<li><b>How they take it</b> — blames the watch, new gear, rest week</li>" +
+    "<li><b>Total improvement</b> — including going backwards</li>" +
+    "</ul>" +
+    "<p>Change <code>DEADLINE</code> in the config to move that date.</p>" +
+
+    "<h3>5. The two links</h3>" +
+    "<p>Once it's hosted, these are the URLs you send:</p>" +
+    "<ul>" +
+    "<li><code>?page=45sec</code> — <b>PERSON_A</b>, " + fmtT(CFG.BEST_A) + " chasing " + fmtT(CFG.TARGET_A) + "</li>" +
+    "<li><code>?page=44sec</code> — <b>PERSON_B</b>, " + fmtT(CFG.BEST_B) + " chasing " + fmtT(CFG.TARGET_B) + "</li>" +
+    "<li><code>?page=setup</code> — this page</li>" +
+    "<li>no parameter — the home page, which lists both</li>" +
+    "</ul>" +
+    '<div class="note">If you\'re previewing this somewhere that strips the query string, ' +
+    "<code>#45sec</code> and <code>#44sec</code> work too. On real hosting, use the <code>?page=</code> version.</div>" +
+
+    "<h3>6. Change the odds or the wording</h3>" +
+    "<p>Below the config block, <code>buildEvent()</code> holds every market. The prices are " +
+    "calculated, but you can hard-code any selection by replacing its <code>odds</code> with a plain " +
+    "number. Lower number, more likely. Add or delete selections freely — the layout adapts.</p>" +
+
+    "<h3>7. What happens when they bet</h3>" +
+    "<p>Nothing. The stake never leaves the page, the balance never moves, and " +
+    "<b>Place bet</b> throws up a void receipt telling them exactly what they've walked into. " +
+    "<b>Deposit</b> does the same thing.</p>" +
+    "</div>";
+}
+
+function render() {
+  document.title = (state.route === "setup" ? "Setup · " : "") + CFG.BRAND + " — " + CFG.OWNER_LABEL;
+  $("#brandName").textContent = CFG.BRAND;
+  $("#ownerTag").textContent = CFG.OWNER_LABEL;
+  $("#balAmt").textContent = money(state.balance);
+  renderRail();
+  const m = $("#main");
+  if (state.route === "45sec" || state.route === "44sec") m.innerHTML = renderEventPage(state.route);
+  else if (state.route === "setup") m.innerHTML = renderSetup();
+  else m.innerHTML = renderLobby();
+  renderSlip();
+}
+
+/* ---------- bet slip ---------- */
+function findOut(key) {
+  const [ev, mi, oi] = key.split(":");
+  const m = EVENTS[ev].markets[+mi];
+  return { market: m, out: m.outs[+oi] };
+}
+
+function togglePick(key) {
+  const i = state.slip.findIndex(s => s.key === key);
+  if (i > -1) { state.slip.splice(i, 1); render(); return; }
+  const { market, out } = findOut(key);
+  state.slip.push({ key, pick: out.name, market: market.name, odds: out.odds, stake: 10 });
+  render();
+  if (window.matchMedia("(max-width:900px)").matches) state.sheetOpen = false, renderSlip();
+}
+
+function multiOdds() {
+  return state.slip.reduce((a, s) => a * s.odds, 1);
+}
+
+function renderSlip() {
+  const n = state.slip.length;
+  $("#slipCount").textContent = n;
+  Array.from($("#slipTabs").children).forEach(b => b.classList.toggle("on", b.dataset.mode === state.mode));
+
+  const body = $("#slipBody"), foot = $("#slipFoot");
+
+  if (!n) {
+    body.innerHTML = '<div class="empty"><span class="big">Slip is empty</span>' +
+      "Tap any price to add it. You can add as many as you like — it costs nothing, " +
+      "in every sense of the word.</div>";
+    foot.innerHTML = '<button class="place" disabled>Place bet</button>';
+  } else if (state.mode === "singles") {
+    body.innerHTML = state.slip.map((s, i) =>
+      '<div class="leg"><div class="leg-top"><div class="info">' +
+      '<div class="pick">' + esc(s.pick) + "</div>" +
+      '<div class="mkt-nm">' + esc(s.market) + "</div></div>" +
+      '<span class="od">' + s.odds.toFixed(2) + "</span>" +
+      '<button class="x" data-rm="' + i + '" aria-label="Remove">×</button></div>' +
+      '<div class="stakerow"><label for="stake' + i + '">Stake</label>' +
+      '<div class="money"><span>$</span>' +
+      '<input id="stake' + i + '" type="number" min="1" step="1" value="' + s.stake + '" data-stake="' + i + '"></div></div>' +
+      '<div class="ret">Returns <b>' + money(s.stake * s.odds) + "</b></div></div>"
+    ).join("");
+    const tot = state.slip.reduce((a, s) => a + (+s.stake || 0), 0);
+    const ret = state.slip.reduce((a, s) => a + (+s.stake || 0) * s.odds, 0);
+    foot.innerHTML = chipsHTML() +
+      '<div class="sumline"><span>' + n + " single" + (n > 1 ? "s" : "") + "</span>" +
+      '<span class="v">' + money(tot) + "</span></div>" +
+      '<div class="sumline big"><span>Total returns</span><span class="v">' + money(ret) + "</span></div>" +
+      '<button class="place" id="placeBtn">Place bet</button>';
+  } else {
+    body.innerHTML = state.slip.map((s, i) =>
+      '<div class="leg"><div class="leg-top"><div class="info">' +
+      '<div class="pick">' + esc(s.pick) + "</div>" +
+      '<div class="mkt-nm">' + esc(s.market) + "</div></div>" +
+      '<span class="od">' + s.odds.toFixed(2) + "</span>" +
+      '<button class="x" data-rm="' + i + '" aria-label="Remove">×</button></div></div>'
+    ).join("");
+    const mo = multiOdds();
+    foot.innerHTML = chipsHTML() +
+      '<div class="stakerow" style="margin:0 0 9px"><label for="multiStake">Stake</label>' +
+      '<div class="money"><span>$</span><input id="multiStake" type="number" min="1" step="1" value="' +
+      state.multiStake + '" data-multistake></div></div>' +
+      '<div class="sumline"><span>' + n + "-leg multi</span>" +
+      '<span class="v">' + mo.toFixed(2) + "</span></div>" +
+      '<div class="sumline big"><span>Potential returns</span><span class="v">' +
+      money(state.multiStake * mo) + "</span></div>" +
+      '<button class="place" id="placeBtn">Place multi</button>';
+  }
+
+  /* mobile sheet */
+  const mobile = window.matchMedia("(max-width:900px)").matches;
+  const bar = $("#sheetBar");
+  if (mobile) {
+    bar.hidden = n === 0;
+    bar.textContent = state.sheetOpen ? "Hide slip" :
+      n + " selection" + (n > 1 ? "s" : "") + " · Open slip";
+    $("#slip").hidden = !(n > 0 && state.sheetOpen);
+  } else {
+    bar.hidden = true;
+    $("#slip").hidden = false;
+  }
+}
+
+function chipsHTML() {
+  return '<div class="chips" style="padding:0 0 11px">' +
+    [5, 10, 25, 50].map(v => '<button data-quick="' + v + '">$' + v + "</button>").join("") +
+    "</div>";
+}
+
+/* ---------- the punchline ---------- */
+const TAUNTS = [
+  { h: "It's fake, bro", s: "There's no money. There's no bet. There's no bookie. Just me, laughing at you." },
+  { h: "HAHAHA no", s: "You genuinely sat there and picked a stake amount. Out loud. With your hands." },
+  { h: "Mate.", s: "You were one click from wiring money to a website with a bird on it." },
+  { h: "Bet not placed", s: "Because it was never a bet. It's a web page. You're betting on a web page." },
+  { h: "Nice try", s: "The odds were made up. The balance was made up. Your confidence was real though." }
+];
+
+function showVoid(sel, stake) {
+  const t = TAUNTS[Math.floor(Math.random() * TAUNTS.length)];
+  $("#veilTitle").textContent = t.h;
+  $("#veilSub").textContent = t.s;
+  const ref = "VOID-" + Math.random().toString(36).slice(2, 6).toUpperCase() +
+    "-" + Math.floor(Math.random() * 9000 + 1000);
+  $("#veilDetail").innerHTML =
+    '<div class="drow"><span>Selection</span><b>' + esc(sel) + "</b></div>" +
+    '<div class="drow"><span>Stake</span><b>' + esc(stake) + "</b></div>" +
+    '<div class="drow"><span>Actual value</span><b>$0.00</b></div>' +
+    '<div class="drow"><span>Reference</span><b>' + ref + "</b></div>" +
+    '<div class="drow"><span>Status</span><b style="color:var(--down)">NOT A REAL BET</b></div>';
+  if (!$("#haWall").childElementCount) {
+    const row = "HAHAHAHAHA ".repeat(14);
+    $("#haWall").innerHTML = Array.from({ length: 7 },
+      () => '<div class="harow">' + row + row + "</div>").join("");
+  }
+  $("#veil").hidden = false;
+  $("#veilClose").focus();
+}
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.hidden = true; }, 2600);
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const goEl = e.target.closest("[data-go]");
+  if (goEl) {
+    const r = goEl.dataset.go;
+    if (r.startsWith("x-")) { toast("Nothing there. Try the featured markets."); return; }
+    go(r);
+    return;
+  }
+  const pick = e.target.closest("[data-pick]");
+  if (pick) { togglePick(pick.dataset.pick); return; }
+  const rm = e.target.closest("[data-rm]");
+  if (rm) { state.slip.splice(+rm.dataset.rm, 1); render(); return; }
+  const quick = e.target.closest("[data-quick]");
+  if (quick) {
+    const v = +quick.dataset.quick;
+    if (state.mode === "multi") state.multiStake = v;
+    else state.slip.forEach(s => s.stake = v);
+    renderSlip();
+    return;
+  }
+  const tab = e.target.closest("#slipTabs button");
+  if (tab) {
+    if (tab.dataset.mode === "multi" && state.slip.length < 2) { toast("A multi needs at least two legs."); return; }
+    state.mode = tab.dataset.mode; renderSlip(); return;
+  }
+  if (e.target.closest("#clearSlip")) { state.slip = []; render(); return; }
+  if (e.target.closest("#sheetBar")) { state.sheetOpen = !state.sheetOpen; renderSlip(); return; }
+  if (e.target.closest("#setupLink")) { go("setup"); return; }
+  if (e.target.closest("#depositBtn")) { showVoid("Deposit · Visa ending in nothing", "$0.00"); return; }
+  if (e.target.closest("#placeBtn")) {
+    const sel = state.mode === "multi"
+      ? state.slip.length + "-leg multi @ " + multiOdds().toFixed(2)
+      : state.slip.map(s => s.pick).join(", ");
+    const stake = state.mode === "multi"
+      ? money(state.multiStake)
+      : money(state.slip.reduce((a, s) => a + (+s.stake || 0), 0));
+    showVoid(sel, stake);
+    return;
+  }
+  if (e.target.closest("#veilClose")) { $("#veil").hidden = true; return; }
+});
+
+document.addEventListener("input", e => {
+  const s = e.target.closest("[data-stake]");
+  if (s) {
+    const i = +s.dataset.stake;
+    state.slip[i].stake = Math.max(0, +s.value || 0);
+    const leg = s.closest(".leg");
+    if (leg) $(".ret", leg).innerHTML = "Returns <b>" + money(state.slip[i].stake * state.slip[i].odds) + "</b>";
+    const tot = state.slip.reduce((a, x) => a + (+x.stake || 0), 0);
+    const ret = state.slip.reduce((a, x) => a + (+x.stake || 0) * x.odds, 0);
+    const rows = $("#slipFoot").querySelectorAll(".sumline .v");
+    if (rows[0]) rows[0].textContent = money(tot);
+    if (rows[1]) rows[1].textContent = money(ret);
+    return;
+  }
+  if (e.target.matches("[data-multistake]")) {
+    state.multiStake = Math.max(0, +e.target.value || 0);
+    const rows = $("#slipFoot").querySelectorAll(".sumline .v");
+    if (rows[1]) rows[1].textContent = money(state.multiStake * multiOdds());
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    if (!$("#veil").hidden) { $("#veil").hidden = true; return; }
+    if (state.sheetOpen) { state.sheetOpen = false; renderSlip(); }
+  }
+});
+
+window.addEventListener("popstate", () => { state.route = readRoute(); state.slip = []; render(); });
+window.addEventListener("hashchange", () => { state.route = readRoute(); render(); });
+window.addEventListener("resize", () => renderSlip());
+
+/* gentle price drift so the board looks alive */
+setInterval(() => {
+  /* never yank the page out from under someone typing a stake */
+  const busy = document.activeElement && document.activeElement.tagName === "INPUT";
+  if (busy || !$("#veil").hidden) return;
+  const keys = Object.keys(EVENTS);
+  const ev = EVENTS[keys[Math.floor(Math.random() * keys.length)]];
+  const m = ev.markets[Math.floor(Math.random() * ev.markets.length)];
+  const o = m.outs[Math.floor(Math.random() * m.outs.length)];
+  const step = o.odds > 6 ? 0.25 : o.odds > 3 ? 0.1 : 0.05;
+  const dir = Math.random() < 0.5 ? -1 : 1;
+  const next = Math.max(1.05, +(o.odds + step * dir).toFixed(2));
+  o.drift = next > o.odds ? 1 : -1;
+  o.odds = next;
+  state.slip.forEach(s => { if (s.key === o.key) s.odds = next; });
+  if (state.route === "45sec" || state.route === "44sec") render();
+}, 6500);
+
+render();
+</script>
+
+</body>
+</html>
